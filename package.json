@@ -1,0 +1,8 @@
+{
+  "name": "laudo-forms",
+  "version": "1.0.0",
+  "description": "Gerador de Laudo Médico Previdenciário",
+  "scripts": {
+    "build": "node build.js"
+  }
+}
