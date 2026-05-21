@@ -362,7 +362,6 @@ function updatePreview() {
         <p><strong>CIDs:</strong> ${getVal("cids").toUpperCase()}</p>
         <p><strong>Início da Enfermidade, agravamento ou progressão:</strong> ${getVal("data_inicio")}</p>
         <p><strong>Incremento de tratamentos/dosagens:</strong> ${getVal("tratamentos").toUpperCase()}</p>
-        <p><strong>Duração Estimada do impedimento/incapacidade/redução da capacidade laborativa:</strong> ${getVal("duracao").toUpperCase()}</p>
     </div>
     <hr>
     <div class="pdf-section">
@@ -418,7 +417,6 @@ async function generatePDF() {
         cids: getVal("cids").toUpperCase(),
         data_inicio: getVal("data_inicio"),
         tratamentos: getVal("tratamentos").toUpperCase(),
-        duracao: getVal("duracao").toUpperCase(),
         discriminacao: getVal("discriminacao").toUpperCase(),
         peculiaridades: getVal("peculiaridades").toUpperCase()
     };
