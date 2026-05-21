@@ -181,6 +181,13 @@ function getSelectedAvaliacoes() {
     return Array.from(checks).map(c => c.value).join(", ");
 }
 
+function getSelectedCheckboxes(name) {
+    const checks = document.querySelectorAll(`input[name="${name}"]:checked`);
+    return Array.from(checks).map(c => c.value).join(", ");
+}
+
+
+
 function validateStep(stepIndex) {
     const currentStepEl = steps[stepIndex];
     const inputs = currentStepEl.querySelectorAll("input[required], textarea[required], select[required]");
@@ -210,14 +217,33 @@ function validateStep(stepIndex) {
         }
     }
 
-    // Validação específica para o checkbox e data no passo 1 (índice 1)
+    // Validação específica para o passo 1 (Avaliação Médica)
     if (stepIndex === 1) {
+        // Atividade exige
+        const atividadeGroup = document.getElementById('atividade_exige_group');
+        if (getSelectedCheckboxes('atividade_exige') === "") {
+            atividadeGroup.classList.add("invalid");
+            isValid = false;
+        } else {
+            atividadeGroup.classList.remove("invalid");
+        }
+
+        // O que o laudo deve relatar
         const group = document.getElementById('tipo_incapacidade_group');
         if (getSelectedAvaliacoes() === "") {
             group.classList.add("invalid");
             isValid = false;
         } else {
             group.classList.remove("invalid");
+        }
+
+        // Base da DII
+        const diiGroup = document.getElementById('base_dii_group');
+        if (getSelectedCheckboxes('base_dii') === "") {
+            diiGroup.classList.add("invalid");
+            isValid = false;
+        } else {
+            diiGroup.classList.remove("invalid");
         }
 
         // Validação da data de início da enfermidade
@@ -229,6 +255,41 @@ function validateStep(stepIndex) {
             isValid = false;
         } else {
             dataError.classList.remove('visible');
+        }
+    }
+
+    // Validação específica para o passo 2 (Histórico e Duração)
+    if (stepIndex === 2) {
+        const ciGroup = document.getElementById('campos_incapacidade_group');
+        if (getSelectedCheckboxes('campos_incapacidade') === "") {
+            ciGroup.classList.add("invalid");
+            isValid = false;
+        } else {
+            ciGroup.classList.remove("invalid");
+        }
+
+        const grauInc = document.getElementById('grau_incapacidade');
+        if (!grauInc.value) { grauInc.classList.add('invalid'); isValid = false; }
+        else { grauInc.classList.remove('invalid'); }
+
+        const impactoLab = document.getElementById('impacto_laboral');
+        if (!impactoLab.value) { impactoLab.classList.add('invalid'); isValid = false; }
+        else { impactoLab.classList.remove('invalid'); }
+
+        const grauNivel = document.getElementById('grau_incapacidade_nivel');
+        if (!grauNivel.value) { grauNivel.classList.add('invalid'); isValid = false; }
+        else { grauNivel.classList.remove('invalid'); }
+
+        const duracaoInc = document.getElementById('duracao_incapacidade');
+        if (!duracaoInc.value) { duracaoInc.classList.add('invalid'); isValid = false; }
+        else { duracaoInc.classList.remove('invalid'); }
+
+        const motivosGroup = document.getElementById('motivos_impacto_group');
+        if (getSelectedCheckboxes('motivos_impacto') === "") {
+            motivosGroup.classList.add("invalid");
+            isValid = false;
+        } else {
+            motivosGroup.classList.remove("invalid");
         }
     }
 
@@ -276,6 +337,11 @@ function updatePreview() {
     }
 
     const avaliacoes = getSelectedAvaliacoes() || "---";
+    const atividadeExige = getSelectedCheckboxes('atividade_exige') || "---";
+    const baseDII = getSelectedCheckboxes('base_dii') || "---";
+
+    const camposInc = getSelectedCheckboxes('campos_incapacidade') || "---";
+    const motivosImp = getSelectedCheckboxes('motivos_impacto') || "---";
 
     render.innerHTML = `
     <div class="pdf-section">
@@ -289,10 +355,23 @@ function updatePreview() {
     </div>
     <hr>
     <div class="pdf-section">
-        <p><strong>Avaliação médica Solicitada:</strong> ${avaliacoes}</p>
+        <p><strong>Atividade exige:</strong> ${atividadeExige}</p>
+        <p><strong>O que o laudo relata:</strong> ${avaliacoes}</p>
+        <p><strong>Base da DII:</strong> ${baseDII}</p>
+        <p><strong>Força muscular:</strong> ${getVal("forca_muscular")}</p>
+        <p><strong>CIDs:</strong> ${getVal("cids").toUpperCase()}</p>
         <p><strong>Início da Enfermidade, agravamento ou progressão:</strong> ${getVal("data_inicio")}</p>
         <p><strong>Incremento de tratamentos/dosagens:</strong> ${getVal("tratamentos").toUpperCase()}</p>
         <p><strong>Duração Estimada do impedimento/incapacidade/redução da capacidade laborativa:</strong> ${getVal("duracao").toUpperCase()}</p>
+    </div>
+    <hr>
+    <div class="pdf-section">
+        <p><strong>Campos para Incapacidade:</strong> ${camposInc}</p>
+        <p><strong>Grau:</strong> ${getVal("grau_incapacidade").toUpperCase()}</p>
+        <p><strong>Impacto laboral:</strong> ${getVal("impacto_laboral").toUpperCase()}</p>
+        <p><strong>Grau de incapacidade:</strong> ${getVal("grau_incapacidade_nivel").toUpperCase()}</p>
+        <p><strong>Duração da incapacidade:</strong> ${getVal("duracao_incapacidade").toUpperCase()}</p>
+        <p><strong>Motivos do impacto:</strong> ${motivosImp}</p>
     </div>
     <hr>
     <div class="pdf-section">
@@ -326,7 +405,17 @@ async function generatePDF() {
         escolaridade: getVal("escolaridade"),
         comunidade: getVal("comunidade").toUpperCase(),
         profissao: getVal("profissao").toUpperCase(),
+        atividade_exige: getSelectedCheckboxes('atividade_exige'),
         tipo_incapacidade: getSelectedAvaliacoes(),
+        base_dii: getSelectedCheckboxes('base_dii'),
+        campos_incapacidade: getSelectedCheckboxes('campos_incapacidade'),
+        grau_incapacidade: getVal("grau_incapacidade"),
+        impacto_laboral: getVal("impacto_laboral"),
+        grau_incapacidade_nivel: getVal("grau_incapacidade_nivel"),
+        duracao_incapacidade: getVal("duracao_incapacidade"),
+        motivos_impacto: getSelectedCheckboxes('motivos_impacto'),
+        forca_muscular: getVal("forca_muscular"),
+        cids: getVal("cids").toUpperCase(),
         data_inicio: getVal("data_inicio"),
         tratamentos: getVal("tratamentos").toUpperCase(),
         duracao: getVal("duracao").toUpperCase(),

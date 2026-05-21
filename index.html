@@ -25,7 +25,7 @@
 
     <nav id="sidebar">
         <div class="nav-header">
-            <img src="https://scontent.fjdo12-1.fna.fbcdn.net/v/t39.30808-6/348588750_1404925373384291_2185431848174065634_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=L_AI_shatlEQ7kNvwFeo-Of&_nc_oc=AdpXkaJbc_EdOFyOTjKigF5KWRQQ3VyPgVfWLUkMwCp7A1y-mBO1vEc4J9zM0m74vrqGqJGDjUcaBe12ZdL6i-db&_nc_zt=23&_nc_ht=scontent.fjdo12-1.fna&_nc_gid=l1tnmFbfVd6XZGBpKEuTcQ&_nc_ss=7a389&oh=00_Af0ncTI5mArb-jjhcCgZ7nhPbE7v5aL543DfUNXQaQLeqA&oe=69E4F1FF"
+            <img src="https://cdn.jsdelivr.net/gh/adsxvha/logo@main/LOGO.jpg"
                 alt="Logo">
             <h2>Formulário do Laudo Médico Previdenciário</h2>
         </div>
@@ -115,21 +115,86 @@
 
             <section class="step-content">
                 <h3>Avaliação Técnica Médica</h3>
-                <label>Avaliação Desejada (Selecione uma ou mais) *</label>
+
+                <!-- Atividade exige -->
+                <label>Atividade exige (Selecione) * <span class="tooltip-icon" title="Considere as exigências físicas e cognitivas da atividade de trabalho avaliada">?</span></label>
+                <div class="checkbox-group" id="atividade_exige_group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="atividade_exige" value="Esforço físico" id="ativ1">
+                        <label for="ativ1">Esforço físico</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="atividade_exige" value="Movimentos repetitivos" id="ativ2">
+                        <label for="ativ2">Movimentos repetitivos</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="atividade_exige" value="Atenção/concentração" id="ativ3">
+                        <label for="ativ3">Atenção/concentração</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="atividade_exige" value="Interação social" id="ativ4">
+                        <label for="ativ4">Interação social</label>
+                    </div>
+                </div>
+
+                <!-- O que o laudo deve relatar -->
+                <label>O que você quer que o laudo relate? (Selecione) *</label>
                 <div class="checkbox-group" id="tipo_incapacidade_group">
                     <div class="checkbox-item">
                         <input type="checkbox" name="avaliacao" value="Incapacidade" id="check1">
                         <label for="check1">Incapacidade</label>
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" name="avaliacao" value="Impedimento de longo prazo" id="check2">
-                        <label for="check2">Impedimento de longo prazo</label>
+                        <input type="checkbox" name="avaliacao" value="Impedimento a longo prazo" id="check2">
+                        <label for="check2">Impedimento a longo prazo</label>
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" name="avaliacao" value="Redução da capacidade" id="check3">
-                        <label for="check3">Redução da capacidade</label>
+                        <input type="checkbox" name="avaliacao" value="Atestar presença da doença" id="check3">
+                        <label for="check3">Atestar presença da doença</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="avaliacao" value="Redução da capacidade" id="check4">
+                        <label for="check4">Redução da capacidade</label>
                     </div>
                 </div>
+
+                <!-- Base da DII -->
+                <label>Base da DII (Selecione) *</label>
+                <div class="checkbox-group" id="base_dii_group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="base_dii" value="Clínica" id="dii1">
+                        <label for="dii1">Clínica</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="base_dii" value="Exame" id="dii2">
+                        <label for="dii2">Exame</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="base_dii" value="Afastamento" id="dii3">
+                        <label for="dii3">Afastamento</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="base_dii" value="Evolução" id="dii4">
+                        <label for="dii4">Evolução</label>
+                    </div>
+                </div>
+
+
+                <!-- Força muscular -->
+                <label>Força muscular (0-5) *</label>
+                <select id="forca_muscular" required>
+                    <option value="">Selecione...</option>
+                    <option value="0">0 - Sem contração</option>
+                    <option value="1">1 - Contração visível sem movimento</option>
+                    <option value="2">2 - Movimento sem gravidade</option>
+                    <option value="3">3 - Movimento contra gravidade</option>
+                    <option value="4">4 - Movimento contra resistência parcial</option>
+                    <option value="5">5 - Força normal</option>
+                </select>
+
+                <!-- CIDs -->
+                <label>Informe as CIDs *</label>
+                <input type="text" id="cids" placeholder="Ex: M54.5, G43.0..." required>
 
                 <label>Início da Enfermidade / Agravamento *</label>
                 <input type="text" id="data_inicio" placeholder="DD/MM/AAAA" maxlength="10" required>
@@ -143,14 +208,113 @@
                 <h3>Duração e Evolução</h3>
                 <label>Duração do Impedimento / Incapacidade / Redução da incapacidade *</label>
                 <input type="text" id="duracao" placeholder="Ex: Permanente" required>
+
+                <label>Campos para Incapacidade (Múltipla escolha) *</label>
+                <div class="checkbox-group" id="campos_incapacidade_group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Limitações funcionais" id="ci1">
+                        <label for="ci1">Limitações funcionais</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Dor incapacitante" id="ci2">
+                        <label for="ci2">Dor incapacitante</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Redução de força" id="ci3">
+                        <label for="ci3">Redução de força</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Limitação de mobilidade" id="ci4">
+                        <label for="ci4">Limitação de mobilidade</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Sustentação de carga prejudicada" id="ci5">
+                        <label for="ci5">Sustentação de carga prejudicada</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Movimentos repetitivos prejudicados" id="ci6">
+                        <label for="ci6">Movimentos repetitivos prejudicados</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Déficit cognitivo" id="ci7">
+                        <label for="ci7">Déficit cognitivo</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Alteração emocional" id="ci8">
+                        <label for="ci8">Alteração emocional</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="campos_incapacidade" value="Interação social prejudicada" id="ci9">
+                        <label for="ci9">Interação social prejudicada</label>
+                    </div>
+                </div>
+
+                <!-- Grau -->
+                <label>Grau *</label>
+                <select id="grau_incapacidade">
+                    <option value="">Selecione...</option>
+                    <option value="Leve">Leve</option>
+                    <option value="Moderado">Moderado</option>
+                    <option value="Grave">Grave</option>
+                </select>
+
+                <!-- Impacto laboral -->
+                <label>Impacto laboral *</label>
+                <select id="impacto_laboral">
+                    <option value="">Selecione...</option>
+                    <option value="Não impede">Não impede</option>
+                    <option value="Impede parcialmente">Impede parcialmente</option>
+                    <option value="Impede totalmente">Impede totalmente</option>
+                </select>
+
+                <!-- Grau incapacidade -->
+                <label>Grau de incapacidade *</label>
+                <select id="grau_incapacidade_nivel">
+                    <option value="">Selecione...</option>
+                    <option value="Parcial">Parcial</option>
+                    <option value="Total">Total</option>
+                </select>
+
+                <!-- Duração -->
+                <label>Duração *</label>
+                <select id="duracao_incapacidade">
+                    <option value="">Selecione...</option>
+                    <option value="Temporária">Temporária</option>
+                    <option value="Permanente">Permanente</option>
+                </select>
+
+                <!-- Motivos do impacto -->
+                <label>Motivos do impacto (Selecione) *</label>
+                <div class="checkbox-group" id="motivos_impacto_group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="motivos_impacto" value="Esforço físico incompatível" id="mi1">
+                        <label for="mi1">Esforço físico incompatível</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="motivos_impacto" value="Repetição inviável" id="mi2">
+                        <label for="mi2">Repetição inviável</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="motivos_impacto" value="Déficit cognitivo" id="mi3">
+                        <label for="mi3">Déficit cognitivo</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="motivos_impacto" value="Risco à saúde" id="mi4">
+                        <label for="mi4">Risco à saúde</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="motivos_impacto" value="Interação social prejudicada" id="mi5">
+                        <label for="mi5">Interação social prejudicada</label>
+                    </div>
+                </div>
             </section>
 
             <section class="step-content">
                 <h3>Fatores Ambientais e Peculiaridades</h3>
                 <label> Possível Discriminação (Trabalho, Escola, Família) *</label>
                 <textarea id="discriminacao" placeholder="Relate barreiras ou preconceitos..." required></textarea>
-                <label>Peculiaridades Adicionais (avaliadas conforme conduta médica) *</label>
-                <textarea id="peculiaridades" placeholder="Conforme conduta médica..." required></textarea>
+                <label>Peculiaridades Adicionais (avaliadas conforme conduta médica)</label>
+                <textarea id="peculiaridades" placeholder="Conforme conduta médica..."></textarea>
             </section>
 
             <section class="step-content" id="final-step">
@@ -158,7 +322,7 @@
                 <div id="pdf-content">
                     <div class="laudo-header">
                         <h1>FORMULÁRIO DO LAUDO MÉDICO PREVIDENCIÁRIO</h1>
-                        <img src="https://scontent.fjdo12-1.fna.fbcdn.net/v/t39.30808-6/348588750_1404925373384291_2185431848174065634_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=1d70fc&_nc_ohc=L_AI_shatlEQ7kNvwFeo-Of&_nc_oc=AdpXkaJbc_EdOFyOTjKigF5KWRQQ3VyPgVfWLUkMwCp7A1y-mBO1vEc4J9zM0m74vrqGqJGDjUcaBe12ZdL6i-db&_nc_zt=23&_nc_ht=scontent.fjdo12-1.fna&_nc_gid=l1tnmFbfVd6XZGBpKEuTcQ&_nc_ss=7a389&oh=00_Af0ncTI5mArb-jjhcCgZ7nhPbE7v5aL543DfUNXQaQLeqA&oe=69E4F1FF"
+                        <img src="https://cdn.jsdelivr.net/gh/adsxvha/logo@main/LOGO.jpg"
                             alt="Logo">
                     </div>
                     <div id="render-area"></div>

@@ -118,6 +118,49 @@ label {
     font-size: 0.9rem;
 }
 
+.tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 0.8rem;
+    font-weight: 900;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+    margin-left: 6px;
+    border: 2px solid #000;
+    border-radius: 50%;
+    color: #000;
+    background-color: #fff;
+    line-height: 1;
+}
+
+.tooltip-icon::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: normal;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.tooltip-icon:hover::after {
+    opacity: 1;
+}
+
 input,
 textarea,
 select {
@@ -270,6 +313,26 @@ button {
 #outro_setor_container {
     display: none;
     margin-top: 10px;
+}
+
+#incapacidade_fields {
+    margin-top: 15px;
+    padding: 20px;
+    background: #fdf8ec;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 #loading-overlay {
