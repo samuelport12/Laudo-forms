@@ -345,6 +345,7 @@ function updatePreview() {
 
     render.innerHTML = `
     <div class="pdf-section">
+        <h3>1. Identificação e Contexto Social</h3>
         <p><strong>Nome do Avaliado:</strong> ${getVal("nome_paciente").toUpperCase()}</p>
         <p><strong>CPF:</strong> ${getVal("cpf").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
         <p><strong>Benefício a ser Solicitado:</strong> ${beneficioFinal.toUpperCase()}</p>
@@ -355,6 +356,7 @@ function updatePreview() {
     </div>
     <hr>
     <div class="pdf-section">
+        <h3>2. Avaliação Técnica Médica</h3>
         <p><strong>Atividade exige:</strong> ${atividadeExige}</p>
         <p><strong>O que o laudo relata:</strong> ${avaliacoes}</p>
         <p><strong>Base da DII:</strong> ${baseDII}</p>
@@ -365,6 +367,7 @@ function updatePreview() {
     </div>
     <hr>
     <div class="pdf-section">
+        <h3>3. Duração e Evolução</h3>
         <p><strong>Campos para Incapacidade:</strong> ${camposInc}</p>
         <p><strong>Grau:</strong> ${getVal("grau_incapacidade").toUpperCase()}</p>
         <p><strong>Impacto laboral:</strong> ${getVal("impacto_laboral").toUpperCase()}</p>
@@ -374,6 +377,7 @@ function updatePreview() {
     </div>
     <hr>
     <div class="pdf-section">
+        <h3>4. Fatores Ambientais e Peculiaridades</h3>
         <p><strong>Possível discriminação/barreiras no trabalho/escola/comunidade/família:</strong> ${getVal("discriminacao").toUpperCase()}</p>
         <p><strong>Peculiaridades adicionais do caso(avaliadas conforme conduta médica):</strong> ${getVal("peculiaridades").toUpperCase()}</p>
     </div>
