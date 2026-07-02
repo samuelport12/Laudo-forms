@@ -67,12 +67,16 @@
                 <div class="grid-2">
                     <div>
                         <label>CPF *</label>
-                        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
+                        <div class="cpf-row">
+                            <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
+                            <button type="button" id="btn-sem-cpf" class="btn-sem-cpf" onclick="toggleSemCPF()"
+                                title="Marque caso o cliente não possua CPF">Não possui</button>
+                        </div>
                         <span class="error-msg" id="cpf-error">CPF inválido. Verifique os dígitos.</span>
                     </div>
                     <div>
-                        <label>Benefício Solicitado *</label>
-                        <select id="beneficio" required onchange="toggleOutroBeneficio()">
+                        <label>Benefício Solicitado</label>
+                        <select id="beneficio" onchange="toggleOutroBeneficio()">
                             <option value="">Selecione...</option>
                             <option value="Auxílio por Incapacidade Temporária">Auxílio por Incapacidade Temporária
                             </option>
@@ -93,8 +97,8 @@
                         <input type="text" id="idade" placeholder="Ex: 45 anos" required>
                     </div>
                     <div>
-                        <label>Grau de Escolaridade *</label>
-                        <select id="escolaridade" required>
+                        <label>Grau de Escolaridade</label>
+                        <select id="escolaridade">
                             <option value="">Selecione...</option>
                             <option value="Analfabeto">Analfabeto</option>
                             <option value="Ensino Fundamental Incompleto">Ensino Fundamental Incompleto</option>
@@ -107,17 +111,17 @@
                     </div>
                 </div>
 
-                <label>Características da Comunidade e Acesso ao SUS *</label>
-                <textarea id="comunidade" placeholder="Descreva o acesso à saúde..." required></textarea>
-                <label>Profissão Habitual ou Potencial (considerando histórico escolar e contexto social) *</label>
-                <input type="text" id="profissao" placeholder="Ex: Pedreiro" required>
+                <label>Características da Comunidade e Acesso ao SUS</label>
+                <textarea id="comunidade" placeholder="Descreva o acesso à saúde..."></textarea>
+                <label>Profissão Habitual ou Potencial (considerando histórico escolar e contexto social)</label>
+                <input type="text" id="profissao" placeholder="Ex: Pedreiro">
             </section>
 
             <section class="step-content">
                 <h3>Avaliação Técnica Médica</h3>
 
                 <!-- Atividade exige -->
-                <label>Atividade exige (Selecione) * <span class="tooltip-icon" title="Considere as exigências físicas e cognitivas da atividade de trabalho avaliada">?</span></label>
+                <label>Atividade exige (Selecione) <span class="tooltip-icon" title="Considere as exigências físicas e cognitivas da atividade de trabalho avaliada">?</span></label>
                 <div class="checkbox-group" id="atividade_exige_group">
                     <div class="checkbox-item">
                         <input type="checkbox" name="atividade_exige" value="Esforço físico" id="ativ1">
@@ -138,7 +142,7 @@
                 </div>
 
                 <!-- O que o laudo deve relatar -->
-                <label>O que você quer que o laudo relate? (Selecione) *</label>
+                <label>O que você quer que o laudo relate? (Selecione)</label>
                 <div class="checkbox-group" id="tipo_incapacidade_group">
                     <div class="checkbox-item">
                         <input type="checkbox" name="avaliacao" value="Incapacidade" id="check1">
@@ -159,7 +163,7 @@
                 </div>
 
                 <!-- Base da DII -->
-                <label>Base da DII (Selecione) *</label>
+                <label>Base da DII (Selecione)</label>
                 <div class="checkbox-group" id="base_dii_group">
                     <div class="checkbox-item">
                         <input type="checkbox" name="base_dii" value="Clínica" id="dii1">
@@ -181,8 +185,8 @@
 
 
                 <!-- Força muscular -->
-                <label>Força muscular (0-5) *</label>
-                <select id="forca_muscular" required>
+                <label>Força muscular (0-5)</label>
+                <select id="forca_muscular">
                     <option value="">Selecione...</option>
                     <option value="0">0 - Sem contração</option>
                     <option value="1">1 - Contração visível sem movimento</option>
@@ -193,21 +197,21 @@
                 </select>
 
                 <!-- CIDs -->
-                <label>Informe as CIDs *</label>
-                <input type="text" id="cids" placeholder="Ex: M54.5, G43.0..." required>
+                <label>Informe as CIDs</label>
+                <input type="text" id="cids" placeholder="Ex: M54.5, G43.0...">
 
-                <label>Início da Enfermidade / Agravamento *</label>
-                <input type="text" id="data_inicio" placeholder="DD/MM/AAAA" maxlength="10" required>
+                <label>Início da Enfermidade / Agravamento</label>
+                <input type="text" id="data_inicio" placeholder="DD/MM/AAAA" maxlength="10">
                 <span class="error-msg" id="data-error">Data inválida. Use o formato DD/MM/AAAA com valores
                     válidos.</span>
-                <label>Incremento de Tratamentos ou Dosagens *</label>
-                <textarea id="tratamentos" placeholder="Ex: Aumento da dosagem..." required></textarea>
+                <label>Incremento de Tratamentos ou Dosagens</label>
+                <textarea id="tratamentos" placeholder="Ex: Aumento da dosagem..."></textarea>
             </section>
 
             <section class="step-content">
                 <h3>Duração e Evolução</h3>
 
-                <label>Campos para Incapacidade (Múltipla escolha) *</label>
+                <label>Campos para Incapacidade (Múltipla escolha)</label>
                 <div class="checkbox-group" id="campos_incapacidade_group">
                     <div class="checkbox-item">
                         <input type="checkbox" name="campos_incapacidade" value="Limitações funcionais" id="ci1">
@@ -248,7 +252,7 @@
                 </div>
 
                 <!-- Grau -->
-                <label>Grau *</label>
+                <label>Grau</label>
                 <select id="grau_incapacidade">
                     <option value="">Selecione...</option>
                     <option value="Leve">Leve</option>
@@ -257,7 +261,7 @@
                 </select>
 
                 <!-- Impacto laboral -->
-                <label>Impacto laboral *</label>
+                <label>Impacto laboral</label>
                 <select id="impacto_laboral">
                     <option value="">Selecione...</option>
                     <option value="Não impede">Não impede</option>
@@ -266,7 +270,7 @@
                 </select>
 
                 <!-- Grau incapacidade -->
-                <label>Grau de incapacidade *</label>
+                <label>Grau de incapacidade</label>
                 <select id="grau_incapacidade_nivel">
                     <option value="">Selecione...</option>
                     <option value="Parcial">Parcial</option>
@@ -274,7 +278,7 @@
                 </select>
 
                 <!-- Duração -->
-                <label>Duração *</label>
+                <label>Duração</label>
                 <select id="duracao_incapacidade">
                     <option value="">Selecione...</option>
                     <option value="Temporária">Temporária</option>
@@ -282,7 +286,7 @@
                 </select>
 
                 <!-- Motivos do impacto -->
-                <label>Motivos do impacto (Selecione) *</label>
+                <label>Motivos do impacto (Selecione)</label>
                 <div class="checkbox-group" id="motivos_impacto_group">
                     <div class="checkbox-item">
                         <input type="checkbox" name="motivos_impacto" value="Esforço físico incompatível" id="mi1">
@@ -309,8 +313,8 @@
 
             <section class="step-content">
                 <h3>Fatores Ambientais e Peculiaridades</h3>
-                <label> Possível Discriminação (Trabalho, Escola, Família) *</label>
-                <textarea id="discriminacao" placeholder="Relate barreiras ou preconceitos..." required></textarea>
+                <label> Possível Discriminação (Trabalho, Escola, Família)</label>
+                <textarea id="discriminacao" placeholder="Relate barreiras ou preconceitos..."></textarea>
                 <label>Peculiaridades Adicionais (avaliadas conforme conduta médica)</label>
                 <textarea id="peculiaridades" placeholder="Conforme conduta médica..."></textarea>
             </section>

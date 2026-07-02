@@ -34,6 +34,7 @@ function loadCache() {
             });
             toggleOutroBeneficio();
             toggleOutroSetor();
+            syncSemCPF();
         } catch (e) {
             console.error("Erro ao carregar cache:", e);
         }
@@ -47,16 +48,44 @@ form.addEventListener('change', saveCache);
 // Carrega o cache logo ao iniciar
 window.onload = loadCache;
 
+// ====== CLIENTE SEM CPF ======
+const SEM_CPF = "Não possui CPF";
+
+function toggleSemCPF() {
+    const input = document.getElementById('cpf');
+    const btn = document.getElementById('btn-sem-cpf');
+    const errorEl = document.getElementById('cpf-error');
+    const ativo = btn.classList.toggle('active');
+    if (ativo) {
+        input.value = SEM_CPF;
+        input.disabled = true;
+        input.classList.remove('invalid');
+        errorEl.classList.remove('visible');
+    } else {
+        input.value = '';
+        input.disabled = false;
+        input.focus();
+    }
+    saveCache();
+}
+
+// Restaura o estado do botão a partir do valor do campo (usado ao carregar o cache)
+function syncSemCPF() {
+    const input = document.getElementById('cpf');
+    const btn = document.getElementById('btn-sem-cpf');
+    const ativo = input.value === SEM_CPF;
+    btn.classList.toggle('active', ativo);
+    input.disabled = ativo;
+}
+
 function toggleOutroBeneficio() {
     const select = document.getElementById('beneficio');
     const container = document.getElementById('outro_beneficio_container');
     const input = document.getElementById('outro_beneficio_texto');
     if (select.value === 'Outros') {
         container.style.display = 'block';
-        input.setAttribute('required', 'true');
     } else {
         container.style.display = 'none';
-        input.removeAttribute('required');
         input.value = '';
     }
 }
@@ -188,109 +217,35 @@ function getSelectedCheckboxes(name) {
 
 
 
-function validateStep(stepIndex) {
-    const currentStepEl = steps[stepIndex];
-    const inputs = currentStepEl.querySelectorAll("input[required], textarea[required], select[required]");
+// Únicos campos obrigatórios: Setor, Nome Completo, CPF e Idade (passo 0)
+function validateRequiredFields() {
     let isValid = true;
 
-    inputs.forEach(input => {
-        if (input.offsetParent !== null) {
-            if (!input.value.trim() || input.value === " anos") {
-                input.classList.add("invalid");
-                isValid = false;
-            } else {
-                input.classList.remove("invalid");
-            }
+    const campos = ['setor', 'nome_paciente', 'cpf', 'idade'];
+    // Se o setor for "Outros", o campo de texto também é obrigatório
+    if (document.getElementById('setor').value === 'Outros') {
+        campos.push('outro_setor_texto');
+    }
+
+    campos.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input.value.trim() || input.value === " anos") {
+            input.classList.add("invalid");
+            isValid = false;
+        } else {
+            input.classList.remove("invalid");
         }
     });
 
-    // Validação de CPF no passo 0
-    if (stepIndex === 0) {
-        const cpfInput = document.getElementById('cpf');
-        const cpfError = document.getElementById('cpf-error');
-        if (cpfInput.value.trim() && !validarCPF(cpfInput.value)) {
-            cpfInput.classList.add('invalid');
-            cpfError.classList.add('visible');
-            isValid = false;
-        } else {
-            cpfError.classList.remove('visible');
-        }
-    }
-
-    // Validação específica para o passo 1 (Avaliação Médica)
-    if (stepIndex === 1) {
-        // Atividade exige
-        const atividadeGroup = document.getElementById('atividade_exige_group');
-        if (getSelectedCheckboxes('atividade_exige') === "") {
-            atividadeGroup.classList.add("invalid");
-            isValid = false;
-        } else {
-            atividadeGroup.classList.remove("invalid");
-        }
-
-        // O que o laudo deve relatar
-        const group = document.getElementById('tipo_incapacidade_group');
-        if (getSelectedAvaliacoes() === "") {
-            group.classList.add("invalid");
-            isValid = false;
-        } else {
-            group.classList.remove("invalid");
-        }
-
-        // Base da DII
-        const diiGroup = document.getElementById('base_dii_group');
-        if (getSelectedCheckboxes('base_dii') === "") {
-            diiGroup.classList.add("invalid");
-            isValid = false;
-        } else {
-            diiGroup.classList.remove("invalid");
-        }
-
-        // Validação da data de início da enfermidade
-        const dataInput = document.getElementById('data_inicio');
-        const dataError = document.getElementById('data-error');
-        if (dataInput.value.trim() && !validarData(dataInput.value)) {
-            dataInput.classList.add('invalid');
-            dataError.classList.add('visible');
-            isValid = false;
-        } else {
-            dataError.classList.remove('visible');
-        }
-    }
-
-    // Validação específica para o passo 2 (Histórico e Duração)
-    if (stepIndex === 2) {
-        const ciGroup = document.getElementById('campos_incapacidade_group');
-        if (getSelectedCheckboxes('campos_incapacidade') === "") {
-            ciGroup.classList.add("invalid");
-            isValid = false;
-        } else {
-            ciGroup.classList.remove("invalid");
-        }
-
-        const grauInc = document.getElementById('grau_incapacidade');
-        if (!grauInc.value) { grauInc.classList.add('invalid'); isValid = false; }
-        else { grauInc.classList.remove('invalid'); }
-
-        const impactoLab = document.getElementById('impacto_laboral');
-        if (!impactoLab.value) { impactoLab.classList.add('invalid'); isValid = false; }
-        else { impactoLab.classList.remove('invalid'); }
-
-        const grauNivel = document.getElementById('grau_incapacidade_nivel');
-        if (!grauNivel.value) { grauNivel.classList.add('invalid'); isValid = false; }
-        else { grauNivel.classList.remove('invalid'); }
-
-        const duracaoInc = document.getElementById('duracao_incapacidade');
-        if (!duracaoInc.value) { duracaoInc.classList.add('invalid'); isValid = false; }
-        else { duracaoInc.classList.remove('invalid'); }
-
-        const motivosGroup = document.getElementById('motivos_impacto_group');
-        if (getSelectedCheckboxes('motivos_impacto') === "") {
-            motivosGroup.classList.add("invalid");
-            isValid = false;
-        } else {
-            motivosGroup.classList.remove("invalid");
-        }
+    // CPF precisa ser válido, não apenas preenchido (exceto quando "Não possui CPF")
+    const cpfInput = document.getElementById('cpf');
+    const cpfError = document.getElementById('cpf-error');
+    if (cpfInput.value.trim() && cpfInput.value !== SEM_CPF && !validarCPF(cpfInput.value)) {
+        cpfInput.classList.add('invalid');
+        cpfError.classList.add('visible');
+        isValid = false;
+    } else {
+        cpfError.classList.remove('visible');
     }
 
     return isValid;
@@ -298,17 +253,17 @@ function validateStep(stepIndex) {
 
 function validateAndNext() {
     if (currentStep < steps.length - 1) {
-        if (validateStep(currentStep)) {
-            changeStep(1);
-        } else {
-            alert("Por favor, preencha todos os campos obrigatórios marcados em vermelho.");
+        if (currentStep === 0 && !validateRequiredFields()) {
+            alert("Preencha os campos obrigatórios: Setor, Nome Completo, CPF e Idade.");
+            return;
         }
+        changeStep(1);
     }
 }
 
 function showStep(n) {
-    if (n > currentStep && !validateStep(currentStep)) {
-        alert("Preencha os campos obrigatórios primeiro.");
+    if (n > currentStep && currentStep === 0 && !validateRequiredFields()) {
+        alert("Preencha os campos obrigatórios: Setor, Nome Completo, CPF e Idade.");
         return;
     }
     steps[currentStep].classList.remove("active");
@@ -327,32 +282,36 @@ function changeStep(n) {
     if (next >= 0 && next < steps.length) showStep(next);
 }
 
+const NAO_SE_APLICA = "Não se aplica";
+
 function updatePreview() {
     const render = document.getElementById("render-area");
-    const getVal = (id) => document.getElementById(id).value || "---";
+    const getVal = (id) => document.getElementById(id).value.trim();
+    // Aplica "Não se aplica" após transformações (uppercase/máscara) para preservar a grafia
+    const orNA = (v) => v || NAO_SE_APLICA;
 
     let beneficioFinal = getVal("beneficio");
     if (beneficioFinal === "Outros") {
         beneficioFinal = getVal("outro_beneficio_texto");
     }
 
-    const avaliacoes = getSelectedAvaliacoes() || "---";
-    const atividadeExige = getSelectedCheckboxes('atividade_exige') || "---";
-    const baseDII = getSelectedCheckboxes('base_dii') || "---";
+    const avaliacoes = orNA(getSelectedAvaliacoes());
+    const atividadeExige = orNA(getSelectedCheckboxes('atividade_exige'));
+    const baseDII = orNA(getSelectedCheckboxes('base_dii'));
 
-    const camposInc = getSelectedCheckboxes('campos_incapacidade') || "---";
-    const motivosImp = getSelectedCheckboxes('motivos_impacto') || "---";
+    const camposInc = orNA(getSelectedCheckboxes('campos_incapacidade'));
+    const motivosImp = orNA(getSelectedCheckboxes('motivos_impacto'));
 
     render.innerHTML = `
     <div class="pdf-section">
         <h3>1. Identificação e Contexto Social</h3>
-        <p><strong>Nome do Avaliado:</strong> ${getVal("nome_paciente").toUpperCase()}</p>
-        <p><strong>CPF:</strong> ${getVal("cpf").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}</p>
-        <p><strong>Benefício a ser Solicitado:</strong> ${beneficioFinal.toUpperCase()}</p>
-        <p><strong>Idade:</strong> ${getVal("idade")}</p>
-        <p><strong>Escolaridade:</strong> ${getVal("escolaridade").toUpperCase()}</p>
-        <p><strong>Características da comunidade onde reside e acesso ao SUS:</strong> ${getVal("comunidade").toUpperCase()}</p>
-        <p><strong>Profissão habitual/potencial, considerando histórico escolar e contexto social:</strong> ${getVal("profissao").toUpperCase()}</p>
+        <p><strong>Nome do Avaliado:</strong> ${orNA(getVal("nome_paciente").toUpperCase())}</p>
+        <p><strong>CPF:</strong> ${orNA(getVal("cpf").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'))}</p>
+        <p><strong>Benefício a ser Solicitado:</strong> ${orNA(beneficioFinal.toUpperCase())}</p>
+        <p><strong>Idade:</strong> ${orNA(getVal("idade"))}</p>
+        <p><strong>Escolaridade:</strong> ${orNA(getVal("escolaridade").toUpperCase())}</p>
+        <p><strong>Características da comunidade onde reside e acesso ao SUS:</strong> ${orNA(getVal("comunidade").toUpperCase())}</p>
+        <p><strong>Profissão habitual/potencial, considerando histórico escolar e contexto social:</strong> ${orNA(getVal("profissao").toUpperCase())}</p>
     </div>
     <hr>
     <div class="pdf-section">
@@ -360,38 +319,44 @@ function updatePreview() {
         <p><strong>Atividade exige:</strong> ${atividadeExige}</p>
         <p><strong>O que o laudo relata:</strong> ${avaliacoes}</p>
         <p><strong>Base da DII:</strong> ${baseDII}</p>
-        <p><strong>Força muscular:</strong> ${getVal("forca_muscular")}</p>
-        <p><strong>CIDs:</strong> ${getVal("cids").toUpperCase()}</p>
-        <p><strong>Início da Enfermidade, agravamento ou progressão:</strong> ${getVal("data_inicio")}</p>
-        <p><strong>Incremento de tratamentos/dosagens:</strong> ${getVal("tratamentos").toUpperCase()}</p>
+        <p><strong>Força muscular:</strong> ${orNA(getVal("forca_muscular"))}</p>
+        <p><strong>CIDs:</strong> ${orNA(getVal("cids").toUpperCase())}</p>
+        <p><strong>Início da Enfermidade, agravamento ou progressão:</strong> ${orNA(getVal("data_inicio"))}</p>
+        <p><strong>Incremento de tratamentos/dosagens:</strong> ${orNA(getVal("tratamentos").toUpperCase())}</p>
     </div>
     <hr>
     <div class="pdf-section">
         <h3>3. Duração e Evolução</h3>
         <p><strong>Campos para Incapacidade:</strong> ${camposInc}</p>
-        <p><strong>Grau:</strong> ${getVal("grau_incapacidade").toUpperCase()}</p>
-        <p><strong>Impacto laboral:</strong> ${getVal("impacto_laboral").toUpperCase()}</p>
-        <p><strong>Grau de incapacidade:</strong> ${getVal("grau_incapacidade_nivel").toUpperCase()}</p>
-        <p><strong>Duração da incapacidade:</strong> ${getVal("duracao_incapacidade").toUpperCase()}</p>
+        <p><strong>Grau:</strong> ${orNA(getVal("grau_incapacidade").toUpperCase())}</p>
+        <p><strong>Impacto laboral:</strong> ${orNA(getVal("impacto_laboral").toUpperCase())}</p>
+        <p><strong>Grau de incapacidade:</strong> ${orNA(getVal("grau_incapacidade_nivel").toUpperCase())}</p>
+        <p><strong>Duração da incapacidade:</strong> ${orNA(getVal("duracao_incapacidade").toUpperCase())}</p>
         <p><strong>Motivos do impacto:</strong> ${motivosImp}</p>
     </div>
     <hr>
     <div class="pdf-section">
         <h3>4. Fatores Ambientais e Peculiaridades</h3>
-        <p><strong>Possível discriminação/barreiras no trabalho/escola/comunidade/família:</strong> ${getVal("discriminacao").toUpperCase()}</p>
-        <p><strong>Peculiaridades adicionais do caso(avaliadas conforme conduta médica):</strong> ${getVal("peculiaridades").toUpperCase()}</p>
+        <p><strong>Possível discriminação/barreiras no trabalho/escola/comunidade/família:</strong> ${orNA(getVal("discriminacao").toUpperCase())}</p>
+        <p><strong>Peculiaridades adicionais do caso(avaliadas conforme conduta médica):</strong> ${orNA(getVal("peculiaridades").toUpperCase())}</p>
     </div>
     `;
 }
 
 async function generatePDF() {
-    if (!validateStep(currentStep)) return;
+    if (!validateRequiredFields()) {
+        showStep(0);
+        alert("Preencha os campos obrigatórios: Setor, Nome Completo, CPF e Idade.");
+        return;
+    }
 
     const overlay = document.getElementById('loading-overlay');
     overlay.style.display = 'flex';
 
     // Coleta de dados em ordem fixa (correspondente às colunas da planilha)
-    const getVal = (id) => document.getElementById(id).value || "";
+    const getVal = (id) => document.getElementById(id).value.trim();
+    // Campos não respondidos são enviados como "Não se aplica"
+    const orNA = (v) => v || NAO_SE_APLICA;
 
     let setorEnvio = getVal("setor");
     if (setorEnvio === "Outros") setorEnvio = getVal("outro_setor_texto");
@@ -400,29 +365,33 @@ async function generatePDF() {
     if (beneficioEnvio === "Outros") beneficioEnvio = getVal("outro_beneficio_texto");
 
     const formData = {
-        setor: setorEnvio,
-        nome_paciente: getVal("nome_paciente").toUpperCase(),
-        cpf: getVal("cpf"),
-        beneficio: beneficioEnvio,
-        idade: getVal("idade"),
-        escolaridade: getVal("escolaridade"),
-        comunidade: getVal("comunidade").toUpperCase(),
-        profissao: getVal("profissao").toUpperCase(),
-        atividade_exige: getSelectedCheckboxes('atividade_exige'),
-        tipo_incapacidade: getSelectedAvaliacoes(),
-        base_dii: getSelectedCheckboxes('base_dii'),
-        campos_incapacidade: getSelectedCheckboxes('campos_incapacidade'),
-        grau_incapacidade: getVal("grau_incapacidade"),
-        impacto_laboral: getVal("impacto_laboral"),
-        grau_incapacidade_nivel: getVal("grau_incapacidade_nivel"),
-        duracao_incapacidade: getVal("duracao_incapacidade"),
-        motivos_impacto: getSelectedCheckboxes('motivos_impacto'),
-        forca_muscular: getVal("forca_muscular"),
-        cids: getVal("cids").toUpperCase(),
-        data_inicio: getVal("data_inicio"),
-        tratamentos: getVal("tratamentos").toUpperCase(),
-        discriminacao: getVal("discriminacao").toUpperCase(),
-        peculiaridades: getVal("peculiaridades").toUpperCase()
+        // Seção 1 - Identificação e Contexto Social
+        setor: orNA(setorEnvio),
+        nome_paciente: orNA(getVal("nome_paciente").toUpperCase()),
+        cpf: orNA(getVal("cpf")),
+        beneficio: orNA(beneficioEnvio),
+        idade: orNA(getVal("idade")),
+        escolaridade: orNA(getVal("escolaridade")),
+        comunidade: orNA(getVal("comunidade").toUpperCase()),
+        profissao: orNA(getVal("profissao").toUpperCase()),
+        // Seção 2 - Avaliação Técnica Médica
+        atividade_exige: orNA(getSelectedCheckboxes('atividade_exige')),
+        tipo_incapacidade: orNA(getSelectedAvaliacoes()),
+        base_dii: orNA(getSelectedCheckboxes('base_dii')),
+        forca_muscular: orNA(getVal("forca_muscular")),
+        cids: orNA(getVal("cids").toUpperCase()),
+        data_inicio: orNA(getVal("data_inicio")),
+        tratamentos: orNA(getVal("tratamentos").toUpperCase()),
+        // Seção 3 - Histórico e Duração
+        campos_incapacidade: orNA(getSelectedCheckboxes('campos_incapacidade')),
+        grau_incapacidade: orNA(getVal("grau_incapacidade")),
+        impacto_laboral: orNA(getVal("impacto_laboral")),
+        grau_incapacidade_nivel: orNA(getVal("grau_incapacidade_nivel")),
+        duracao_incapacidade: orNA(getVal("duracao_incapacidade")),
+        motivos_impacto: orNA(getSelectedCheckboxes('motivos_impacto')),
+        // Seção 4 - Fatores Ambientais e Peculiaridades
+        discriminacao: orNA(getVal("discriminacao").toUpperCase()),
+        peculiaridades: orNA(getVal("peculiaridades").toUpperCase())
     };
 
     // Inicia animação de passos
@@ -465,7 +434,9 @@ async function generatePDF() {
         filename: `Laudo_${document.getElementById('nome_paciente').value}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        // Respeita as regras CSS de quebra de página (evita cortar seções ao meio)
+        pagebreak: { mode: ['css', 'legacy'] }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
@@ -501,6 +472,7 @@ function clearForm() {
         localStorage.removeItem('laudo_draft_cache');
         localStorage.removeItem('laudo_vh_v7');
         toggleOutroBeneficio();
+        syncSemCPF();
         updatePreview();
     }
 }
