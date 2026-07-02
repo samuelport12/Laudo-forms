@@ -457,22 +457,29 @@ async function generatePDF() {
             successIcon.style.display = 'block';
             successMsg.style.display = 'block';
 
-            // Fecha após 2 segundos
+            // Fecha após 2 segundos e limpa o formulário para um novo preenchimento
             setTimeout(() => {
                 overlay.style.display = 'none';
+                resetFormData();
+                showStep(0);
             }, 2000);
         }, 800);
     });
 }
 
+function resetFormData() {
+    form.reset();
+    document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+    localStorage.removeItem('laudo_draft_cache');
+    localStorage.removeItem('laudo_vh_v7');
+    toggleOutroBeneficio();
+    toggleOutroSetor();
+    syncSemCPF();
+    updatePreview();
+}
+
 function clearForm() {
     if (confirm("Deseja apagar todos os dados?")) {
-        form.reset();
-        document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
-        localStorage.removeItem('laudo_draft_cache');
-        localStorage.removeItem('laudo_vh_v7');
-        toggleOutroBeneficio();
-        syncSemCPF();
-        updatePreview();
+        resetFormData();
     }
 }
