@@ -35,6 +35,8 @@
         <button class="tab-btn" onclick="showStep(3)">4. Fatores Ambientais</button>
         <button class="tab-btn" onclick="showStep(4)">5. Gerar Arquivo</button>
 
+        <button class="btn-ai-sidebar" onclick="openAIModal()">👩‍⚕️Preencher com IA</button>
+
         <div class="copyright">
             Controladoria VHA &copy;
         </div>
@@ -343,6 +345,47 @@
 
     <script src="config.js"></script>
     <script src="script.js"></script>
+
+    <!-- Modal Preencher com IA -->
+    <div id="ai-modal-overlay" class="ai-modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="ai-modal">
+            <h3 class="ai-modal-title">Preencher a partir dos documentos</h3>
+
+            <div class="ai-step">
+                <div class="ai-step-number">1</div>
+                <div class="ai-step-body">
+                    <h4>Copie o prompt e leve para a IA</h4>
+                    <p>Abra o ChatGPT, Claude, Gemini ou outra IA que aceite anexos. <strong>Anexe a documentação do paciente</strong> (laudos, exames, atestados, receituários, CAT) e cole o prompt na mesma mensagem.</p>
+                    <div class="ai-step-buttons">
+                        <button type="button" class="btn-ai-copy" onclick="copyAIPrompt()">📋 Copiar prompt</button>
+                        <button type="button" class="btn-ai-view" onclick="togglePromptView()">Ver prompt</button>
+                    </div>
+                    <div id="ai-prompt-view" class="ai-prompt-view">
+                        <pre id="ai-prompt-text"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-step">
+                <div class="ai-step-number">2</div>
+                <div class="ai-step-body">
+                    <h4>Cole aqui o que a IA respondeu</h4>
+                    <p>Os campos serão preenchidos e continuam totalmente editáveis.</p>
+                    <textarea id="ai-response-input" placeholder='Cole o bloco começando com {  "nome": ...'></textarea>
+                    <div class="ai-error-msg" id="ai-error-msg"></div>
+                </div>
+            </div>
+
+            <div class="ai-modal-footer">
+                <button type="button" class="btn-ai-close" onclick="closeAIModal()">Fechar</button>
+                <button type="button" class="btn-ai-fill" onclick="applyAIResponse()">Preencher formulário</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de sucesso -->
+    <div id="ai-toast" class="ai-toast"></div>
+
 </body>
 
 </html>

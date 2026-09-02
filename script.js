@@ -483,3 +483,404 @@ function clearForm() {
         resetFormData();
     }
 }
+
+// ====== PREENCHER COM IA ======
+
+const AI_PROMPT = `Você é um assistente de triagem de documentação médica para perícia. Vou anexar documentos do paciente. Leia TUDO e extraia APENAS o que está EXPLÍCITO para preencher o formulário.
+
+REGRAS ABSOLUTAS — leia antes de responder:
+
+1. Só registre o que estiver EXPLÍCITO nos documentos. É proibido inferir, deduzir, estimar ou completar com conhecimento médico.
+2. Se a informação não estiver nos documentos, DEIXE O CAMPO DE FORA (não escreva "não informado", não invente).
+3. Nunca preencha achados de exame físico, limitação funcional ou intensidade de dor que não estejam descritos por escrito.
+4. Sempre que copiar um achado relevante, cite a origem: (RM 12/11/2023), (atestado Dr. Silva 03/2024), (CAT 15/07/2023).
+5. Datas no formato brasileiro dd/mm/aaaa (ex: 15/07/2023).
+6. Nos campos de lista, use EXATAMENTE uma das opções permitidas, copiada letra por letra. Se nenhuma servir, omita.
+7. Se documentos forem ilegíveis ou de outro paciente, diga e não invente nada.
+
+O FORMULÁRIO RECEBE ESTES DADOS:
+
+SEÇÃO 1 - Identificação e Contexto Social:
+- nome: nome completo
+- idade: número em anos
+- profissao: profissão habitual
+- comunidade: acesso à saúde, características do local
+
+SEÇÃO 2 - Avaliação Técnica Médica:
+- cid: CID-10 (ex: M54.5)
+- inicioSintomas: dd/mm/aaaa quando começou
+- queixa: queixa principal conforme documentos
+- forca_muscular: 0-5 conforme escrito
+- medicamentos: nome, dose, tempo
+- rx / usg / tc / rm: data + achados
+- fisioterapia: número de sessões e período
+- cirurgia: data e procedimento
+
+SEÇÃO 3 - Capacidade Funcional:
+- repercussao: como a doença impacta — use EXATAMENTE: "Esforço físico" | "Marcha prolongada" | "Permanecer sentado" | "Permanecer em pé" | "Movimentos repetitivos" | "Carregar peso" | "Trabalhar"
+- cap_caminhar: "Normal" | "Leve" | "Moderada" | "Grave" | "Incapaz" (APENAS se escrito)
+- cap_permanecer_sentado: idem
+- cap_permanecer_em_pe: idem
+- cap_subir_escadas: idem
+- cap_agachar: idem
+- cap_levantar_peso: idem
+- cap_trabalhar: idem (essencial para o laudo)
+- cap_dormir_adequadamente: idem
+
+SEÇÃO 4 - Evolução e Impacto:
+- evolucao: tempo desde o início (ex: "13 meses")
+- afastamento: "Sim" | "Não"
+- afastamentoTipo: "Determinado" | "Indeterminado" (APENAS se afastamento=Sim)
+- afastamentoDias: número de dias (se houver)
+
+SEÇÃO 5 - Contexto Adicional:
+- descricaoTrauma: como/quando ocorreu
+- comorbidades: doenças, cirurgias, medicações anteriores
+- exameFisicoObs: achados de exame físico com fonte
+- inspecao: ["Inchaço/edema" | "Deformidade" | "Atrofia muscular" | "Cicatrizes" | "Sem alterações à inspeção"]
+- conclusao: síntese do quadro, sem juízo pericial
+
+FORMATO DA RESPOSTA — um único bloco JSON, sem texto antes ou depois:
+
+{
+  "nome": "texto",
+  "idade": "número",
+  "profissao": "texto",
+  "comunidade": "texto",
+
+  "cid": "CID-10",
+  "inicioSintomas": "dd/mm/aaaa",
+  "queixa": "queixa conforme documentos",
+  "forca_muscular": 0-5,
+  "medicamentos": "descrição",
+  "rx": "data + achados",
+  "usg": "data + achados",
+  "tc": "data + achados",
+  "rm": "data + achados",
+  "fisioterapia": "sessões e período",
+  "cirurgia": "data e procedimento",
+
+  "repercussao": ["item1", "item2"],
+  "cap_caminhar": "opção",
+  "cap_permanecer_sentado": "opção",
+  "cap_permanecer_em_pe": "opção",
+  "cap_subir_escadas": "opção",
+  "cap_agachar": "opção",
+  "cap_levantar_peso": "opção",
+  "cap_trabalhar": "opção",
+  "cap_dormir_adequadamente": "opção",
+
+  "evolucao": "tempo",
+  "afastamento": "Sim | Não",
+  "afastamentoTipo": "Determinado | Indeterminado",
+  "afastamentoDias": "número",
+
+  "descricaoTrauma": "detalhes",
+  "comorbidades": "doenças, medicações",
+  "exameFisicoObs": "achados com fonte",
+  "inspecao": ["opção1", "opção2"],
+  "conclusao": "síntese objetiva",
+
+  "pendencias": ["lista do que falta coletar na consulta/exame"]
+}
+
+INSTRUÇÕES FINAIS:
+- Omita completamente campos sem informação nos documentos (JSON curto > JSON inventado).
+- Em arrays (repercussao, inspecao): inclua APENAS itens confirmados. Se nenhum, omita a chave.
+- Capacidade funcional (cap_*): APENAS se o documento descrever textualmente. Na dúvida, omita e liste em "pendencias".
+- "pendencias" é OBRIGATÓRIO: especifique o que falta (ex: "Teste de força detalhado do ombro D", "Escala EVA de dor", "Grau de limitação para agachar").
+- Responda APENAS com JSON. Sem introdução, sem comentários, sem explicações depois.`;
+
+// ---- Modal controls ----
+
+// Insere o prompt uma vez na página (não a cada clique)
+window.addEventListener('DOMContentLoaded', function() {
+    const promptElement = document.getElementById('ai-prompt-text');
+    if (promptElement && !promptElement.textContent) {
+        promptElement.textContent = AI_PROMPT;
+    }
+});
+
+function openAIModal() {
+    const overlay = document.getElementById('ai-modal-overlay');
+    overlay.classList.add('open');
+    document.getElementById('ai-response-input').value = '';
+    document.getElementById('ai-error-msg').classList.remove('visible');
+    document.getElementById('ai-prompt-view').classList.remove('open');
+}
+
+function closeAIModal() {
+    document.getElementById('ai-modal-overlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+    if (e.target === document.getElementById('ai-modal-overlay')) {
+        closeAIModal();
+    }
+}
+
+async function copyAIPrompt() {
+    const btn = document.querySelector('.btn-ai-copy');
+    try {
+        await navigator.clipboard.writeText(AI_PROMPT);
+        btn.textContent = '✅ Copiado!';
+    } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = AI_PROMPT;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.textContent = '✅ Copiado!';
+    }
+    setTimeout(() => { btn.textContent = '📋 Copiar prompt'; }, 2500);
+}
+
+function togglePromptView() {
+    const view = document.getElementById('ai-prompt-view');
+    const btn = document.querySelector('.btn-ai-view');
+    const isOpen = view.classList.toggle('open');
+    btn.textContent = isOpen ? 'Ocultar prompt' : 'Ver prompt';
+}
+
+// ---- Aplicar resposta da IA ----
+
+function applyAIResponse() {
+    const input = document.getElementById('ai-response-input').value.trim();
+    const errorEl = document.getElementById('ai-error-msg');
+
+    if (!input) {
+        errorEl.textContent = 'Cole a resposta da IA antes de preencher.';
+        errorEl.classList.add('visible');
+        return;
+    }
+
+    try {
+        // Extrai JSON mesmo que a IA tenha adicionado texto ao redor
+        let jsonStr = input;
+        const jsonMatch = input.match(/\{[\s\S]*\}/);
+        if (jsonMatch) jsonStr = jsonMatch[0];
+
+        const data = JSON.parse(jsonStr);
+        const count = mapAIDataToForm(data);
+
+        // Dispara toggles condicionais e salva cache
+        toggleOutroBeneficio();
+        toggleOutroSetor();
+        syncSemCPF();
+        saveCache();
+
+        closeAIModal();
+        showStep(0);
+
+        // Toast de sucesso
+        showToast(`✅ ${count} campos preenchidos com sucesso!`);
+
+    } catch (e) {
+        errorEl.textContent = 'JSON inválido. Verifique se a resposta da IA está no formato correto.';
+        errorEl.classList.add('visible');
+        console.error('Erro ao parsear resposta da IA:', e);
+    }
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('ai-toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+
+// ---- Mapeamento: JSON da IA → campos do formulário ----
+
+function mapAIDataToForm(data) {
+    let filled = 0;
+
+    // Helpers
+    const setVal = (id, val) => {
+        if (!val) return false;
+        const el = document.getElementById(id);
+        if (!el) return false;
+        el.value = String(val);
+        return true;
+    };
+
+    const setSelect = (id, val) => {
+        if (!val) return false;
+        const sel = document.getElementById(id);
+        if (!sel) return false;
+        for (const opt of sel.options) {
+            if (opt.value === val) { sel.value = val; return true; }
+        }
+        return false;
+    };
+
+    const setCheckboxes = (name, values) => {
+        if (!values || !Array.isArray(values) || !values.length) return 0;
+        let count = 0;
+        document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+            if (values.includes(cb.value)) { cb.checked = true; count++; }
+        });
+        return count;
+    };
+
+    // ==== Seção 1: Identificação e Contexto Social ====
+
+    if (setVal('nome_paciente', data.nome)) filled++;
+
+    if (data.idade) {
+        const num = String(data.idade).replace(/\D/g, '');
+        if (num && setVal('idade', num + ' anos')) filled++;
+    }
+
+    if (setVal('profissao', data.profissao || data.funcao)) filled++;
+
+    // ==== Seção 2: Avaliação Técnica Médica ====
+
+    // Atividade exige — inferir a partir de repercussao
+    if (data.repercussao && Array.isArray(data.repercussao)) {
+        const ativ = [];
+        if (data.repercussao.some(r => ['Esforço físico', 'Carregar peso'].includes(r))) ativ.push('Esforço físico');
+        if (data.repercussao.includes('Movimentos repetitivos')) ativ.push('Movimentos repetitivos');
+        if (data.repercussao.some(r => ['Permanecer sentado', 'Permanecer em pé'].includes(r))) ativ.push('Atenção/concentração');
+        filled += setCheckboxes('atividade_exige', ativ);
+    }
+
+    // O que o laudo relata — inferir da documentação
+    const avaliacoes = [];
+    const CAP_FIELDS = ['cap_caminhar', 'cap_permanecer_sentado', 'cap_permanecer_em_pe',
+        'cap_subir_escadas', 'cap_agachar', 'cap_levantar_peso', 'cap_trabalhar', 'cap_dormir_adequadamente'];
+    const hasLimitation = CAP_FIELDS.some(f => data[f] && data[f] !== 'Normal');
+
+    if (data.cid) avaliacoes.push('Atestar presença da doença');
+    if (hasLimitation) avaliacoes.push('Redução da capacidade');
+    if (data.cap_trabalhar && ['Grave', 'Incapaz'].includes(data.cap_trabalhar)) avaliacoes.push('Incapacidade');
+    if (data.afastamentoTipo === 'Indeterminado') avaliacoes.push('Impedimento a longo prazo');
+    filled += setCheckboxes('avaliacao', avaliacoes);
+
+    // Base da DII
+    const baseDii = [];
+    if (data.queixa || data.exameFisicoObs) baseDii.push('Clínica');
+    if (data.rx || data.usg || data.tc || data.rm || data.examesOutros) baseDii.push('Exame');
+    if (data.afastamento === 'Sim') baseDii.push('Afastamento');
+    if (data.evolucao) baseDii.push('Evolução');
+    filled += setCheckboxes('base_dii', baseDii);
+
+    // CIDs
+    if (setVal('cids', data.cid)) filled++;
+
+    // Data início
+    if (setVal('data_inicio', data.inicioSintomas)) filled++;
+
+    // Tratamentos — agregar todas as informações de tratamento
+    const trat = [];
+    if (data.medicamentos) trat.push('Medicamentos: ' + data.medicamentos);
+    if (data.fisioterapia) trat.push('Fisioterapia: ' + data.fisioterapia);
+    if (data.infiltracao) trat.push('Infiltração: ' + data.infiltracao);
+    if (data.cirurgia) trat.push('Cirurgia: ' + data.cirurgia);
+    if (data.tratamentoOutros) trat.push(data.tratamentoOutros);
+    if (trat.length && setVal('tratamentos', trat.join('\n'))) filled++;
+
+    // ==== Seção 3: Duração e Evolução ====
+
+    // Campos de incapacidade
+    const camposInc = [];
+    if (data.capacidadeObs || hasLimitation) camposInc.push('Limitações funcionais');
+    if (data.eva && data.eva >= 7) camposInc.push('Dor incapacitante');
+    if (data.inspecao && Array.isArray(data.inspecao) && data.inspecao.includes('Atrofia muscular')) camposInc.push('Redução de força');
+
+    const mobFields = ['cap_caminhar', 'cap_subir_escadas', 'cap_agachar'];
+    if (mobFields.some(f => data[f] && ['Moderada', 'Grave', 'Incapaz'].includes(data[f]))) camposInc.push('Limitação de mobilidade');
+    if (data.cap_levantar_peso && ['Moderada', 'Grave', 'Incapaz'].includes(data.cap_levantar_peso)) camposInc.push('Sustentação de carga prejudicada');
+    if (data.repercussao && Array.isArray(data.repercussao) && data.repercussao.includes('Movimentos repetitivos')) camposInc.push('Movimentos repetitivos prejudicados');
+    filled += setCheckboxes('campos_incapacidade', camposInc);
+
+    // Grau
+    if (data.cap_trabalhar) {
+        const grauMap = { 'Incapaz': 'Grave', 'Grave': 'Grave', 'Moderada': 'Moderado', 'Leve': 'Leve' };
+        if (grauMap[data.cap_trabalhar] && setSelect('grau_incapacidade', grauMap[data.cap_trabalhar])) filled++;
+    }
+
+    // Impacto laboral
+    if (data.cap_trabalhar) {
+        let impacto = '';
+        if (data.cap_trabalhar === 'Incapaz') impacto = 'Impede totalmente';
+        else if (['Grave', 'Moderada'].includes(data.cap_trabalhar)) impacto = 'Impede parcialmente';
+        else if (['Normal', 'Leve'].includes(data.cap_trabalhar)) impacto = 'Não impede';
+        if (impacto && setSelect('impacto_laboral', impacto)) filled++;
+    }
+
+    // Grau de incapacidade (parcial/total)
+    if (data.cap_trabalhar === 'Incapaz') {
+        if (setSelect('grau_incapacidade_nivel', 'Total')) filled++;
+    } else if (hasLimitation) {
+        if (setSelect('grau_incapacidade_nivel', 'Parcial')) filled++;
+    }
+
+    // Duração
+    if (data.afastamentoTipo === 'Indeterminado') {
+        if (setSelect('duracao_incapacidade', 'Permanente')) filled++;
+    } else if (data.afastamentoTipo === 'Determinado') {
+        if (setSelect('duracao_incapacidade', 'Temporária')) filled++;
+    }
+
+    // Motivos do impacto
+    if (data.repercussao && Array.isArray(data.repercussao)) {
+        const motivos = [];
+        if (data.repercussao.some(r => ['Esforço físico', 'Carregar peso'].includes(r))) motivos.push('Esforço físico incompatível');
+        if (data.repercussao.includes('Movimentos repetitivos')) motivos.push('Repetição inviável');
+        if (data.repercussao.includes('Trabalhar')) motivos.push('Risco à saúde');
+        filled += setCheckboxes('motivos_impacto', motivos);
+    }
+
+    // ==== Seção 4: Fatores Ambientais e Peculiaridades ====
+
+    // Peculiaridades — agregar todas as informações extras da IA
+    const pecul = [];
+
+    if (data.queixa) pecul.push('Queixa principal: ' + data.queixa);
+    if (data.segmento && Array.isArray(data.segmento)) pecul.push('Segmento(s) afetado(s): ' + data.segmento.join(', '));
+    if (data.comorbidades) pecul.push('Comorbidades: ' + data.comorbidades);
+    if (data.descricaoTrauma) pecul.push('Descrição do trauma: ' + data.descricaoTrauma);
+    if (data.evolucao) pecul.push('Evolução: ' + data.evolucao);
+
+    // Exames
+    const exames = [];
+    if (data.rx) exames.push('RX: ' + data.rx);
+    if (data.usg) exames.push('USG: ' + data.usg);
+    if (data.tc) exames.push('TC: ' + data.tc);
+    if (data.rm) exames.push('RM: ' + data.rm);
+    if (data.examesOutros) exames.push('Outros: ' + data.examesOutros);
+    if (exames.length) pecul.push('Exames:\n' + exames.join('\n'));
+
+    if (data.exameFisicoObs) pecul.push('Exame físico documentado: ' + data.exameFisicoObs);
+    if (data.capacidadeObs) pecul.push('Capacidade funcional: ' + data.capacidadeObs);
+    if (data.repercussaoObs) pecul.push('Repercussão laboral: ' + data.repercussaoObs);
+
+    // Dispositivos
+    if (data.dispositivo && Array.isArray(data.dispositivo) && !data.dispositivo.includes('Nenhum')) {
+        let disp = 'Dispositivos: ' + data.dispositivo.join(', ');
+        if (data.dispositivoObs) disp += ' — ' + data.dispositivoObs;
+        pecul.push(disp);
+    }
+
+    // Afastamento
+    if (data.afastamento === 'Sim') {
+        let afast = 'Afastamento: Sim';
+        if (data.afastamentoTipo) afast += ' (' + data.afastamentoTipo + ')';
+        if (data.afastamentoDias) afast += ' — ' + data.afastamentoDias + ' dias';
+        pecul.push(afast);
+    }
+
+    if (data.conclusao) pecul.push('Conclusão documental: ' + data.conclusao);
+
+    // Pendências
+    if (data.pendencias && Array.isArray(data.pendencias) && data.pendencias.length) {
+        pecul.push('⚠ Pendências (colher em consulta):\n• ' + data.pendencias.join('\n• '));
+    }
+
+    if (pecul.length && setVal('peculiaridades', pecul.join('\n\n'))) filled++;
+
+    return filled;
+}
